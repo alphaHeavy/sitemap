@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sitemap (
-    parseSitemap
+    parseEither
+  , parseSitemap
   , parseUrlIndex
   , ChangeFrequency(..)
   , Sitemap(..)
@@ -79,3 +80,6 @@ parseSitemapUrl = tagNoAttr "url" $ do
 
 parseUrlIndex :: MonadThrow m => ConduitM Event o m (Maybe [SitemapUrl])
 parseUrlIndex = tagIgnoreAttrs "urlset" $ many parseSitemapUrl
+
+parseEither :: MonadThrow m => ConduitM Event o m (Maybe (Either [Sitemap] [SitemapUrl]))
+parseEither = (return . maybe Nothing (Just . Left) =<< parseSitemap) `orE` (return . maybe Nothing (Just . Right) =<< parseUrlIndex)
