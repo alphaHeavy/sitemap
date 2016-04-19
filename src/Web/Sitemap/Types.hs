@@ -4,7 +4,7 @@ import Data.Text (Text)
 import Data.Time
 import Data.Url
 
-data ChangeFrequency = Always | Hourly | Daily | Weekly | Monthly | Never
+data ChangeFrequency = Always | Hourly | Daily | Weekly | Monthly | Never deriving (Enum,Eq,Show)
 
 data SitemapUrl = SitemapUrl {
   suLocation :: FullyQualifiedUrl,
@@ -12,7 +12,7 @@ data SitemapUrl = SitemapUrl {
   suChangeFrequency :: Maybe ChangeFrequency,
   suPriority :: Maybe Float,
   suNews :: Maybe News
-}
+} deriving Show
 
 data SitemapItem = SitemapItem {
   sLocation :: FullyQualifiedUrl,
@@ -22,7 +22,7 @@ data SitemapItem = SitemapItem {
 data Publication = Publication {
   pName :: Text,
   pLanguage :: Text
-}
+} deriving (Eq,Show)
 
 data News = News {
   nPublication :: Publication,
@@ -31,6 +31,6 @@ data News = News {
   nTitle :: Text,
   nKeywords :: Maybe Text,
   nStockTickers :: Maybe Text
-}
+} deriving Show
 
 data SitemapResult = Sitemap [SitemapItem] | UrlSet [SitemapUrl]

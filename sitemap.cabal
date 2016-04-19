@@ -24,6 +24,7 @@ library
     conduit,
     exceptions,
     google-url,
+    mtl,
     text,
     time,
     xml-conduit,
