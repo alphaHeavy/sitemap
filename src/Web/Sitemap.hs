@@ -38,7 +38,7 @@ parsePublication el = go
 
 parseNews :: MonadIO m => Element -> m News
 parseNews el = do
-  x <- parsePublicationDate $ fromJust pubDate
+  x <- parseDate $ fromJust pubDate
   return $ News pub genres x title keywords stocks -- title keywords stocks
   where
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
@@ -59,8 +59,8 @@ parseChangeFrequency = parse . fromJust . getContent
     parse "monthly" = Monthly
     parse "never" = Never
 
-parsePublicationDate :: MonadIO m => Element -> m UTCTime
-parsePublicationDate el = do
+parseDate :: MonadIO m => Element -> m UTCTime
+parseDate el = do
   let (Just content) = getContent el
   tryAll $ T.unpack content
   where
@@ -82,15 +82,10 @@ parsePublicationDate el = do
 parseLocation :: Element -> FullyQualifiedUrl
 parseLocation = parseFullyQualifiedUrl . L.head . fmap (\ (NodeContent x) -> x) . elementNodes
 
-parseLastModified :: Monad m => Element -> m UTCTime
-parseLastModified = parseTimeM True defaultTimeLocale format . T.unpack . fromJust . getContent
-  where
-    format = "%Y-%m-%dT%H:%M:%S%z"
-
 parseUrlItem :: MonadIO m => Element -> m (Maybe SitemapUrl)
 parseUrlItem el = do
   t <- case lastm of
-         Just x -> return . Just =<< parseLastModified x
+         Just x -> return . Just =<< parseDate x
          Nothing -> return Nothing
   go loc t
   where
@@ -120,7 +115,7 @@ parseSitemapItem el =
     Just x ->
       case lastm of
         Just y -> do
-          t <- parseLastModified y
+          t <- parseDate y
           return $ Just $ SitemapItem (parseLocation x) (Just t)
         Nothing -> return $ Just $ SitemapItem (parseLocation x) Nothing
     Nothing -> return $ Nothing
