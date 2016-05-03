@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sitemap (
     parseSitemap
-
   , module Web.Sitemap.Types
 ) where
 
@@ -9,6 +8,7 @@ import Control.Exception (catch,SomeException(..))
 import Control.Monad.Trans
 import qualified Data.List as L
 import Data.Maybe
+import Data.String (fromString)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -82,8 +82,8 @@ parseDate el = do
 parseLocation :: Element -> FullyQualifiedUrl
 parseLocation = parseFullyQualifiedUrl . L.head . fmap (\ (NodeContent x) -> x) . elementNodes
 
-parseUrlItem :: MonadIO m => Element -> m (Maybe SitemapUrl)
-parseUrlItem el = do
+parseUrlItem :: MonadIO m => Text -> Element -> m (Maybe SitemapUrl)
+parseUrlItem namespace el = do
   t <- case lastm of
          Just x -> return . Just =<< parseDate x
          Nothing -> return Nothing
@@ -94,10 +94,10 @@ parseUrlItem el = do
       return $ Just $ SitemapUrl (parseLocation l) t (fmap parseChangeFrequency freq) (fmap parsePriority priority) n
     go _ _ = return Nothing
 
-    loc = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}loc" == elementName x) elements
-    lastm = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
-    freq = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}changefreq" == elementName x) elements
-    priority = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}priority" == elementName x) elements
+    loc = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}loc"]) == elementName x) elements
+    lastm = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}lastmod"]) == elementName x) elements
+    freq = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}changefreq"]) == elementName x) elements
+    priority = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}priority"]) == elementName x) elements
     news = L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}news" == elementName x) elements
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
 
@@ -147,5 +147,9 @@ parseSitemap text =
           return $ Right $ Sitemap $ catMaybes r
         x | x == "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset" -> do
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
-          r <- mapM parseUrlItem elements
+          r <- mapM (parseUrlItem "http://www.sitemaps.org/schemas/sitemap/0.9") elements
+          return $ Right $ UrlSet $ catMaybes r
+        x | x == "{http://www.google.com/schemas/sitemap/0.9}urlset" -> do
+          let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
+          r <- mapM (parseUrlItem "http://www.google.com/schemas/sitemap/0.9") elements
           return $ Right $ UrlSet $ catMaybes r

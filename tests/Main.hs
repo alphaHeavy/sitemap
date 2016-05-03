@@ -31,12 +31,31 @@ testBloombergNews = testCase "Bloomberg News" $ do
   r <- parseSitemap x
   case r of
     Right (UrlSet x) -> do
-      print x
       assertBool "Wrong number of results" $ 258 == L.length x
     _ -> assertFailure "No Results Returned"
 
+testCnbcNews :: TestTree
+testCnbcNews = testCase "CNBC" $ do
+  x <- TIO.readFile "tests/examples/cnbc.com.news"
+  r <- parseSitemap x
+  case r of
+    Right (UrlSet x) -> do
+      print x
+      assertBool "Wrong number of results" $ 80 == L.length x
+    _ -> assertFailure "No Results Returned"
+
+testMarketWatchNews :: TestTree
+testMarketWatchNews = testCase "CNBC" $ do
+  x <- TIO.readFile "tests/examples/marketwatch.com.news"
+  r <- parseSitemap x
+  case r of
+    Right (UrlSet x) -> do
+      print x
+      assertBool "Wrong number of results" $ 140 == L.length x
+    _ -> assertFailure "No Results Returned"
+
 tests :: TestTree
-tests = testGroup "All Tests" [testYahooFinance, testYahooFinanceUrls, testBloombergNews]
+tests = testGroup "All Tests" [testYahooFinance, testYahooFinanceUrls, testBloombergNews,testCnbcNews,testMarketWatchNews]
 
 main :: IO ()
 main = defaultMain tests
