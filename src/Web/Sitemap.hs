@@ -92,7 +92,9 @@ parseUrlItem namespace el = do
   where
     go (Just l) t = do
       n <- pn
-      return $ Just $ SitemapUrl (fromJust $ parseLocation l) t (fmap parseChangeFrequency freq) (fmap parsePriority priority) n
+      case parseLocation l of
+        Just x -> return $ Just $ SitemapUrl x t (fmap parseChangeFrequency freq) (fmap parsePriority priority) n
+        Nothing -> return Nothing
     go _ _ = return Nothing
 
     loc = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}loc"]) == elementName x) elements
