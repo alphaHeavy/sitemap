@@ -75,8 +75,8 @@ parseDate el = do
       return $ L.head $ catMaybes [x1,x2,x3,x4]
 
     format1 = "%Y-%m-%d"
-    format2 = "%Y-%m-%dT%H:%M%z"
-    format3 = "%Y-%m-%dT%H:%M:%S%z"
+    format2 = "%Y-%m-%dT%H:%M%Z"
+    format3 = "%Y-%m-%dT%H:%M:%S%Z"
     format4 = "%Y-%m-%dT%H:%M:%S%Q%Z"
 
 parseLocation :: Element -> FullyQualifiedUrl
