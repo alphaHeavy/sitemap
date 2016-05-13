@@ -17,7 +17,7 @@ data SitemapUrl = SitemapUrl {
 data SitemapItem = SitemapItem {
   sLocation :: FullyQualifiedUrl,
   sLastModified :: Maybe UTCTime
-}
+} deriving Show
 
 data Publication = Publication {
   pName :: Text,
@@ -33,4 +33,4 @@ data News = News {
   nStockTickers :: Maybe Text
 } deriving Show
 
-data SitemapResult = Sitemap [SitemapItem] | UrlSet [SitemapUrl]
+data SitemapResult = Sitemap [SitemapItem] | UrlSet [SitemapUrl] deriving Show

@@ -17,11 +17,12 @@ import Data.Url
 import Text.XML
 import Web.Sitemap.Types
 
+safeHead [] = Nothing
+safeHead (x:_) = Just x
+
+
 getContent :: Element -> Maybe Text
 getContent = safeHead . fmap (\ (NodeContent x) -> x) . L.filter isContent . elementNodes
-  where
-    safeHead [] = Nothing
-    safeHead (x:_) = Just x
 
 parsePriority :: Element -> Float
 parsePriority = read . T.unpack . fromJust . getContent
@@ -79,8 +80,8 @@ parseDate el = do
     format3 = "%Y-%m-%dT%H:%M:%S%Z"
     format4 = "%Y-%m-%dT%H:%M:%S%Q%Z"
 
-parseLocation :: Element -> FullyQualifiedUrl
-parseLocation = parseFullyQualifiedUrl . L.head . fmap (\ (NodeContent x) -> x) . elementNodes
+parseLocation :: Element -> Maybe FullyQualifiedUrl
+parseLocation = fmap parseFullyQualifiedUrl . safeHead . fmap (\ (NodeContent x) -> x) . elementNodes
 
 parseUrlItem :: MonadIO m => Text -> Element -> m (Maybe SitemapUrl)
 parseUrlItem namespace el = do
@@ -91,7 +92,7 @@ parseUrlItem namespace el = do
   where
     go (Just l) t = do
       n <- pn
-      return $ Just $ SitemapUrl (parseLocation l) t (fmap parseChangeFrequency freq) (fmap parsePriority priority) n
+      return $ Just $ SitemapUrl (fromJust $ parseLocation l) t (fmap parseChangeFrequency freq) (fmap parsePriority priority) n
     go _ _ = return Nothing
 
     loc = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}loc"]) == elementName x) elements
@@ -111,17 +112,17 @@ parseUrlItem namespace el = do
 
 parseSitemapItem :: MonadIO m => Element -> m (Maybe SitemapItem)
 parseSitemapItem el =
-  case loc of
+  case maybe Nothing parseLocation loc of
     Just x ->
       case lastm of
         Just y -> do
           t <- parseDate y
-          return $ Just $ SitemapItem (parseLocation x) (Just t)
-        Nothing -> return $ Just $ SitemapItem (parseLocation x) Nothing
+          return $ Just $ SitemapItem x (Just t)
+        Nothing -> return $ Just $ SitemapItem x Nothing
     Nothing -> return $ Nothing
   where
     loc = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}loc" == elementName x) elements
-    lastm = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
+    lastm =  L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
 
 
