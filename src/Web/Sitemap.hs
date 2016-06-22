@@ -17,6 +17,7 @@ import Data.Url
 import Text.XML
 import Web.Sitemap.Types
 
+
 getContent :: Element -> Maybe Text
 getContent = safeHead . fmap (\ (NodeContent x) -> x) . L.filter isContent . elementNodes
   where
@@ -45,7 +46,7 @@ parseNews el = do
     pub = parsePublication $ fromJust $ L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}publication" == elementName x) elements
     genres = maybe Nothing id $ fmap getContent $ L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}genres" == elementName x) elements
     pubDate = L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}publication_date" == elementName x) elements
-    title = fromJust $ fmap (fromJust . getContent) $ L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}title" == elementName x) elements
+    title = fromJust $ fmap (maybe "" id . getContent) $ L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}title" == elementName x) elements
     keywords = maybe Nothing id $ fmap getContent $  L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}keywords" == elementName x) elements
     stocks = maybe Nothing id $ fmap getContent $  L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}stock_tickers" == elementName x) elements
 
