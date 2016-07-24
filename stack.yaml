@@ -9,7 +9,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/alphaHeavy/google-url.git
-    commit: d17d66f8cae52bf933b23d2e36f24224d26da4f0
+    commit: 4e17193c6da3910a7427c362b343920af78b9045
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps: []
 

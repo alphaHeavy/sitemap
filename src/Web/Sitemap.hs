@@ -80,7 +80,11 @@ parseDate el = do
     format4 = "%Y-%m-%dT%H:%M:%S%Q%Z"
 
 parseLocation :: Element -> Maybe FullyQualifiedUrl
-parseLocation = fmap parseFullyQualifiedUrl . safeHead . fmap (\ (NodeContent x) -> x) . elementNodes
+parseLocation = convert . fmap parseUrl . safeHead . fmap (\ (NodeContent x) -> x) . elementNodes
+  where
+    convert :: Maybe Url -> Maybe FullyQualifiedUrl
+    convert (Just (FullyQualifiedUrl x)) = Just x
+    convert _ = Nothing
 
 parseUrlItem :: MonadIO m => Text -> Element -> m (Maybe SitemapUrl)
 parseUrlItem namespace el = do
