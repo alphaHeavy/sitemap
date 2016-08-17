@@ -22,6 +22,7 @@ library
     base >= 4.7 && < 5,
     bytestring,
     conduit,
+    deepseq,
     exceptions,
     google-url,
     mtl,
@@ -43,6 +44,7 @@ test-suite sitemap-test
   build-depends:
     base,
     conduit,
+    deepseq,
     directory,
     mtl,
     resourcet,

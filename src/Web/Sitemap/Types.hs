@@ -1,10 +1,14 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Web.Sitemap.Types where
 
+import Control.DeepSeq
 import Data.Text (Text)
 import Data.Time
 import Data.Url
+import GHC.Generics
 
-data ChangeFrequency = Always | Hourly | Daily | Weekly | Monthly | Never deriving (Enum,Eq,Show)
+data ChangeFrequency = Always | Hourly | Daily | Weekly | Monthly | Never deriving (Enum,Eq,Generic,Show)
 
 data SitemapUrl = SitemapUrl {
   suLocation :: FullyQualifiedUrl,
@@ -12,17 +16,17 @@ data SitemapUrl = SitemapUrl {
   suChangeFrequency :: Maybe ChangeFrequency,
   suPriority :: Maybe Float,
   suNews :: Maybe News
-} deriving Show
+} deriving (Generic,Show)
 
 data SitemapItem = SitemapItem {
   sLocation :: FullyQualifiedUrl,
   sLastModified :: Maybe UTCTime
-} deriving Show
+} deriving (Generic, Show)
 
 data Publication = Publication {
   pName :: Text,
   pLanguage :: Text
-} deriving (Eq,Show)
+} deriving (Eq,Generic,Show)
 
 data News = News {
   nPublication :: Publication,
@@ -31,6 +35,13 @@ data News = News {
   nTitle :: Text,
   nKeywords :: Maybe Text,
   nStockTickers :: Maybe Text
-} deriving Show
+} deriving (Generic,Show)
 
-data SitemapResult = Sitemap [SitemapItem] | UrlSet [SitemapUrl] deriving Show
+data SitemapResult = Sitemap [SitemapItem] | UrlSet [SitemapUrl] deriving (Generic,Show)
+
+instance NFData SitemapResult
+instance NFData News
+instance NFData Publication
+instance NFData SitemapItem
+instance NFData SitemapUrl
+instance NFData ChangeFrequency

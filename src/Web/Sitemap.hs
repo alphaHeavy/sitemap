@@ -86,7 +86,7 @@ parseLocation = convert . fmap parseUrl . safeHead . fmap (\ (NodeContent x) -> 
     convert (Just (FullyQualifiedUrl x)) = Just x
     convert _ = Nothing
 
-parseUrlItem :: MonadIO m => Text -> Element -> m (Maybe SitemapUrl)
+parseUrlItem :: MonadIO m => Maybe Text -> Element -> m (Maybe SitemapUrl)
 parseUrlItem namespace el = do
   t <- case lastm of
          Just x -> return . Just =<< parseDate x
@@ -100,10 +100,10 @@ parseUrlItem namespace el = do
         Nothing -> return Nothing
     go _ _ = return Nothing
 
-    loc = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}loc"]) == elementName x) elements
-    lastm = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}lastmod"]) == elementName x) elements
-    freq = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}changefreq"]) == elementName x) elements
-    priority = L.find (\ x -> (fromString $ T.unpack $ T.concat["{",namespace,"}priority"]) == elementName x) elements
+    loc = L.find (\ x -> makeElementName namespace "loc" == elementName x) elements
+    lastm = L.find (\ x -> makeElementName namespace "lastmod" == elementName x) elements
+    freq = L.find (\ x -> makeElementName namespace "changefreq" == elementName x) elements
+    priority = L.find (\ x -> makeElementName namespace "priority" == elementName x) elements
     news = L.find (\ x -> "{http://www.google.com/schemas/sitemap-news/0.9}news" == elementName x) elements
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
 
@@ -114,6 +114,9 @@ parseUrlItem namespace el = do
           return $ Just t
         Nothing  -> return Nothing
 
+makeElementName :: Maybe Text -> Text -> Name
+makeElementName (Just namespace) element = fromString $ T.unpack $ T.concat ["{",namespace,"}",element]
+makeElementName Nothing element = fromString $ T.unpack element
 
 parseSitemapItem :: MonadIO m => Element -> m (Maybe SitemapItem)
 parseSitemapItem el =
@@ -153,9 +156,13 @@ parseSitemap text =
           return $ Right $ Sitemap $ catMaybes r
         x | x == "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset" -> do
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
-          r <- mapM (parseUrlItem "http://www.sitemaps.org/schemas/sitemap/0.9") elements
+          r <- mapM (parseUrlItem (Just "http://www.sitemaps.org/schemas/sitemap/0.9")) elements
           return $ Right $ UrlSet $ catMaybes r
         x | x == "{http://www.google.com/schemas/sitemap/0.9}urlset" -> do
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
-          r <- mapM (parseUrlItem "http://www.google.com/schemas/sitemap/0.9") elements
+          r <- mapM (parseUrlItem (Just "http://www.google.com/schemas/sitemap/0.9")) elements
+          return $ Right $ UrlSet $ catMaybes r
+        x | x == "urlset" -> do
+          let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
+          r <- mapM (parseUrlItem Nothing) elements
           return $ Right $ UrlSet $ catMaybes r
