@@ -72,12 +72,15 @@ parseDate el = do
       x2 <- tryParse format2 input
       x3 <- tryParse format3 input
       x4 <- tryParse format4 input
-      return $ L.head $ catMaybes [x1,x2,x3,x4]
+      x5 <- tryParse format5 input
+      return $ L.head $ catMaybes [x1,x2,x3,x4,x5]
 
     format1 = "%Y-%m-%d"
     format2 = "%Y-%m-%dT%H:%M%Z"
     format3 = "%Y-%m-%dT%H:%M:%S%Z"
     format4 = "%Y-%m-%dT%H:%M:%S%Q%Z"
+    format5 = "%Y-%m-%d %H:%M:%S%Q %Z"
+
 
 parseLocation :: Element -> Maybe FullyQualifiedUrl
 parseLocation = convert . fmap parseUrl . safeHead . fmap (\ (NodeContent x) -> x) . elementNodes
