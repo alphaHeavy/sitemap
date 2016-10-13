@@ -89,10 +89,19 @@ testTampaBay = testCase "Tampa Bay" $ do
       assertBool "Wrong number of results" $ 164 == (L.length $ force x)
     _ -> assertFailure "No Results Returned"
 
+testBloombergIndex :: TestTree
+testBloombergIndex = testCase "Bloomberg Index" $ do
+  x <- TIO.readFile "tests/examples/bloomberg_index.xml"
+  r <- parseSitemap x
+  case r of
+    Right (Sitemap x) ->
+      print $ L.length x
+      assertBool "Wrong number of results" $ 5 == (L.length $ force x)
+    _ -> assertFailure "No Results Returned"
 
 tests :: TestTree
 tests = testGroup "All Tests" [testYahooFinance, testYahooFinanceUrls, testBloombergNews,testCnbcNews,testMarketWatchNews,
-                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay]
+                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay,testBloombergIndex]
 
 main :: IO ()
 main = defaultMain tests
