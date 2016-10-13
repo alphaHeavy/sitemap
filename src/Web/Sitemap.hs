@@ -157,6 +157,10 @@ parseSitemap text =
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
           r <- mapM parseSitemapItem elements
           return $ Right $ Sitemap $ catMaybes r
+        x | x == "{http://www.sitemaps.org/schemas/sitemap/0.9}indexes" -> do
+          let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
+          r <- mapM parseSitemapItem elements
+          return $ Right $ Sitemap $ catMaybes r
         x | x == "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset" -> do
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
           r <- mapM (parseUrlItem (Just "http://www.sitemaps.org/schemas/sitemap/0.9")) elements

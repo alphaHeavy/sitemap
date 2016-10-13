@@ -94,9 +94,8 @@ testBloombergIndex = testCase "Bloomberg Index" $ do
   x <- TIO.readFile "tests/examples/bloomberg_index.xml"
   r <- parseSitemap x
   case r of
-    Right (Sitemap x) ->
-      print $ L.length x
-      assertBool "Wrong number of results" $ 5 == (L.length $ force x)
+    Right (Sitemap x) -> do
+      assertBool "Wrong number of results" $ 339 == (L.length $ force x)
     _ -> assertFailure "No Results Returned"
 
 tests :: TestTree
