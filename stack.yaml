@@ -2,16 +2,18 @@
 # For more information, see: http://docs.haskellstack.org/en/stable/yaml_configuration/
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-5.10
+resolver: lts-8.24
 
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
 - location:
     git: https://github.com/alphaHeavy/google-url.git
-    commit: 4e17193c6da3910a7427c362b343920af78b9045
+    commit: 8ad593e6ef529e6df7b3f5db48fa7cdc7f75d201
+  extra-dep: true
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps:
+- bindings-DSL-1.0.23
 
 # Override default flag values for local packages and extra-deps
 flags: {}
@@ -32,10 +34,12 @@ extra-package-dbs: []
 
 # Extra directories used by stack for building
 extra-include-dirs:
-- /usr/local/Cellar/icu4c/55.1/include
+- /usr/include
+- /usr/local/include
 
 extra-lib-dirs:
-- /usr/local/Cellar/icu4c/55.1/lib
+- /usr/local/lib
+- /usr/lib/
 
 
 # Allow a newer minor version of GHC than the snapshot specifies

@@ -123,9 +123,9 @@ makeElementName Nothing element = fromString $ T.unpack element
 
 parseSitemapItem :: MonadIO m => Element -> m (Maybe SitemapItem)
 parseSitemapItem el =
-  case maybe Nothing parseLocation loc of
+  case maybe Nothing parseLocation $ firstMaybe [loc, loc'] of
     Just x ->
-      case lastm of
+      case firstMaybe [lastm, lastm'] of
         Just y -> do
           t <- parseDate y
           return $ Just $ SitemapItem x (Just t)
@@ -133,9 +133,10 @@ parseSitemapItem el =
     Nothing -> return $ Nothing
   where
     loc = L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}loc" == elementName x) elements
+    loc' = L.find (\ x -> "{https://www.sitemaps.org/schemas/sitemap/0.9}loc" == elementName x) elements
     lastm =  L.find (\ x -> "{http://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
+    lastm' =  L.find (\ x -> "{https://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
-
 
 
 isElement :: Node -> Bool
@@ -146,6 +147,11 @@ isContent :: Node -> Bool
 isContent (NodeContent _) = True
 isContent _ = False
 
+firstMaybe :: [Maybe a] -> Maybe a
+firstMaybe ((Just x):xs) = (Just x)
+firstMaybe (Nothing:xs) = firstMaybe xs
+firstMaybe [] = Nothing
+
 parseSitemap :: MonadIO m => Text -> m (Either SomeException SitemapResult)
 parseSitemap text =
   case parseText def $ TL.fromStrict text of
@@ -154,6 +160,10 @@ parseSitemap text =
       let el = documentRoot x
       case elementName el of
         x | x == "{http://www.sitemaps.org/schemas/sitemap/0.9}sitemapindex" -> do
+          let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
+          r <- mapM parseSitemapItem elements
+          return $ Right $ Sitemap $ catMaybes r
+        x | x == "{https://www.sitemaps.org/schemas/sitemap/0.9}sitemapindex" -> do
           let elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes  el
           r <- mapM parseSitemapItem elements
           return $ Right $ Sitemap $ catMaybes r
