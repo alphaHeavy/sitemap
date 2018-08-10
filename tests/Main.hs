@@ -107,10 +107,18 @@ testCNBC = testCase "CNBC" $ do
       assertBool "Wrong number of results" $ 13 == (L.length $ force x)
     _ -> assertFailure "No Results Returned"
 
+testHoustonChronicle :: TestTree
+testHoustonChronicle = testCase "Houston Chronicle" $ do
+  x <- TIO.readFile "tests/examples/houstoncronicle.com"
+  r <- parseSitemap x
+  case r of
+    Right (UrlSet x) -> do
+      assertBool "Wrong number of results" $ 999 == (L.length $ force x)
+    _ -> assertFailure "No Results Returned"
 
 tests :: TestTree
 tests = testGroup "All Tests" [testYahooFinance, testYahooFinanceUrls, testBloombergNews,testCnbcNews,testMarketWatchNews,
-                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay,testBloombergIndex, testCNBC]
+                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay,testBloombergIndex, testCNBC, testHoustonChronicle]
 
 main :: IO ()
 main = defaultMain tests

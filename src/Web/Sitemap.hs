@@ -1,10 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Web.Sitemap (
     parseSitemap
   , module Web.Sitemap.Types
 ) where
 
-import Control.Exception (catch,SomeException(..))
+import Control.Exception (catch,catches,Handler(..),throw,fromException, SomeException(..))
 import Control.Monad.Trans
 import qualified Data.List as L
 import Data.Maybe
@@ -138,7 +139,6 @@ parseSitemapItem el =
     lastm' =  L.find (\ x -> "{https://www.sitemaps.org/schemas/sitemap/0.9}lastmod" == elementName x) elements
     elements = fmap (\ (NodeElement x) -> x) $ L.filter isElement $ elementNodes el
 
-
 isElement :: Node -> Bool
 isElement (NodeElement _) = True
 isElement _ = False
@@ -152,10 +152,32 @@ firstMaybe ((Just x):xs) = (Just x)
 firstMaybe (Nothing:xs) = firstMaybe xs
 firstMaybe [] = Nothing
 
+unescapeNews :: Maybe News -> Maybe News
+unescapeNews Nothing = Nothing
+unescapeNews (Just (News pub genres date title keywords tickers)) = Just $ News pub (fmap unescape genres) date (unescape title) (fmap unescape keywords) (fmap unescape tickers)   
+
+unescape :: Text -> Text
+unescape text = T.replace "&amp;" "&" text
+
+unescapeResults :: SitemapResult -> SitemapResult
+unescapeResults (UrlSet items) = UrlSet $ fmap (\ x -> x{suNews = unescapeNews $ suNews x}) items
+unescapeResults x = x
+
+handleFailedParsing :: MonadIO m => Text -> SomeException -> m (Either SomeException SitemapResult)
+handleFailedParsing text e = do
+  liftIO $ throw e `catches` [Handler (\ (ex :: UnresolvedEntityException) -> handleUnresolvedEntityException)]
+  where
+    handleUnresolvedEntityException = do
+      let text' = T.replace "&" "&amp;" text
+      result' <- parseSitemap text'
+      case result' of
+        y@(Left _) -> return y
+        Right y -> return $ Right $ unescapeResults y
+
 parseSitemap :: MonadIO m => Text -> m (Either SomeException SitemapResult)
 parseSitemap text =
   case parseText def $ TL.fromStrict text of
-    Left x -> return $ Left x
+    Left x -> handleFailedParsing text x
     Right x -> do
       let el = documentRoot x
       case elementName el of
