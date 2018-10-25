@@ -116,9 +116,38 @@ testHoustonChronicle = testCase "Houston Chronicle" $ do
       assertBool "Wrong number of results" $ 999 == (L.length $ force x)
     _ -> assertFailure "No Results Returned"
 
+testUsNews :: TestTree
+testUsNews = testCase "US News" $ do
+  x <- TIO.readFile "tests/examples/usnews.com.news"
+  r <- parseSitemap x
+  case r of
+    Right (UrlSet x) -> do
+      assertBool "Wrong number of results" $ 918 == (L.length $ force x)
+    _ -> assertFailure "No Results Returned"
+
+testWashingtonExaminer :: TestTree
+testWashingtonExaminer = testCase "Washington Examiner" $ do
+      x <- TIO.readFile "tests/examples/washingtonexaminer.com"
+      r <- parseSitemap x
+      case r of
+        Right (UrlSet x) -> do
+          assertBool "Wrong number of results" $ 50000 == (L.length $ force x)
+        _ -> assertFailure "No Results Returned"
+
+testFool :: TestTree
+testFool = testCase "fool.com" $ do
+  x <- TIO.readFile "tests/examples/fool.com"
+  r <- parseSitemap x
+  case r of
+    Right (Sitemap x) -> do
+      assertBool "Wrong number of results" $ 280 == (L.length $ force x)
+    _ -> assertFailure "No Results Returned"
+
+
 tests :: TestTree
 tests = testGroup "All Tests" [testYahooFinance, testYahooFinanceUrls, testBloombergNews,testCnbcNews,testMarketWatchNews,
-                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay,testBloombergIndex, testCNBC, testHoustonChronicle]
+                              testMarketWatch,testSeekingAlphaNews,testMarketWatchSearch,testTampaBay,testBloombergIndex,
+                              testCNBC, testHoustonChronicle, testUsNews, testWashingtonExaminer, testFool	]
 
 main :: IO ()
 main = defaultMain tests
